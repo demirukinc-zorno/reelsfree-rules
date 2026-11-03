@@ -39,8 +39,25 @@ window.ReelsFreeRules = {
   linkContains: [],
   cardSelector: null,
 
-  // Only the "Use the app" prompts. Ad hiding was removed: the feed went grey while scrolling.
+  // Ad hiding was removed: the feed went grey while scrolling.
   sweep: function (document, helpers) {
     helpers.hideAppPrompts();
+
+    // A reel opened from a DM plays in a vertical scroll-snap viewer where swiping moves on
+    // without changing the URL. Lock that viewer's scrolling so only the opened reel plays.
+    // Limited to reel and DM pages so the home feed can never be locked.
+    if (!/^\/(?:reels?|direct)\//.test(location.pathname)) return;
+    document.querySelectorAll("video").forEach(function (video) {
+      for (var node = video.parentElement, depth = 0; node && node !== document.body && depth < 20; node = node.parentElement, depth++) {
+        if (node.hasAttribute("data-rf-locked")) return;
+        var style = getComputedStyle(node);
+        if (/\b(y|block|both)\b/.test(style.scrollSnapType) && /auto|scroll/.test(style.overflowY)) {
+          node.setAttribute("data-rf-locked", "");
+          node.style.setProperty("overflow-y", "hidden", "important");
+          node.style.setProperty("touch-action", "pan-x pinch-zoom", "important");
+          return;
+        }
+      }
+    });
   }
 };
