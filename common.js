@@ -114,6 +114,8 @@
   // obfuscated and change often.
   function hideAppPrompts() {
     document.querySelectorAll('a, button, div[role="button"]').forEach(function (el) {
+      // A prompt button holds a word or two; skip big containers before reading their text.
+      if (el.childElementCount > 3) return;
       var text = el.textContent;
       if (text.length > 40 || !APP_PROMPT.test(text.trim())) return;
       hide(promptContainer(el));
@@ -145,14 +147,16 @@
     enforce();  // catches URL changes that bypass the history API
   }
 
+  // Infinite feeds mutate constantly; sweeping on every frame starves the page and stalls
+  // loading. Sweep at most every 400 ms. CSS rules still apply instantly in between.
   var scheduled = false;
   new MutationObserver(function () {
     if (scheduled) return;
     scheduled = true;
-    requestAnimationFrame(function () {
+    setTimeout(function () {
       scheduled = false;
       sweep();
-    });
+    }, 400);
   }).observe(document.documentElement, { childList: true, subtree: true });
 
   enforce();
