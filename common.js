@@ -1,3 +1,4 @@
+// Rules version: 2026-11-03.2
 // Shared runtime, injected right after the platform's rules file at document start.
 // The platform file sets window.ReelsFreeRules = { rewrite(url), css, linkContains, cardSelector, sweep? }.
 // sweep(document, helpers) runs on every DOM change; helpers = { hide(el), hideAppPrompts() }.
