@@ -33,16 +33,27 @@ window.ReelsFreeRules = {
   // Sponsored posts. Matches on the visible label because Instagram's class names are
   // obfuscated and change often.
   sweep: function (document, helpers) {
-    var SPONSORED = /^(sponsored|sponsorlu|reklam)$/i;
+    var SPONSORED = /^(ad|sponsored|sponsorlu|reklam)$/i;
+    var LIKE = 'svg[aria-label="Like"], svg[aria-label="Beğen"]';
 
-    document.querySelectorAll("article").forEach(function (post) {
-      var labels = post.querySelectorAll("span, a");
-      for (var i = 0; i < labels.length; i++) {
-        if (SPONSORED.test(labels[i].textContent.trim())) {
-          helpers.hide(post);
-          return;
+    // The post is the first ancestor that has a like button and whose parent holds other
+    // posts too. Posts are not always <article> elements on the mobile site.
+    function postFor(label) {
+      var article = label.closest("article");
+      if (article) return article;
+      for (var node = label.parentElement, depth = 0; node && node.parentElement && depth < 25; node = node.parentElement, depth++) {
+        if (node.querySelector(LIKE) && node.parentElement.querySelectorAll(LIKE).length > node.querySelectorAll(LIKE).length) {
+          return node;
         }
       }
+      return null;
+    }
+
+    document.querySelectorAll("span, a, div").forEach(function (label) {
+      if (label.childElementCount > 1 || label.textContent.length > 12) return;
+      if (!SPONSORED.test(label.textContent.trim())) return;
+      var post = postFor(label);
+      if (post) helpers.hide(post);
     });
 
     helpers.hideAppPrompts();
