@@ -28,5 +28,10 @@ window.ReelsFreeRules = {
   ].join(",\n") + " { display: none !important; }",
 
   linkContains: [],
-  cardSelector: null
+  cardSelector: null,
+
+  // Only the "Use the app" prompts. Ad hiding was removed: the feed went grey while scrolling.
+  sweep: function (document, helpers) {
+    helpers.hideAppPrompts();
+  }
 };
