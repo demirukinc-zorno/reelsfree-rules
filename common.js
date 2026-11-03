@@ -2,6 +2,7 @@
 // Shared runtime, injected right after the platform's rules file at document start.
 // The platform file sets window.ReelsFreeRules = { rewrite(url), css, linkContains, cardSelector, sweep? }.
 // sweep(document, helpers) runs on every DOM change; helpers = { hide(el), hideAppPrompts() }.
+// blockSwipe(fromURL, toURL) returns true when an untapped URL change is a swipe to block.
 // All blocking decisions come from rewrite(): it returns a replacement URL for a blocked page, or null.
 (function () {
   "use strict";
@@ -51,11 +52,34 @@
   }
   attachStyle();
 
+  // Swipe feeds change the URL with no tap involved; a tap is what separates choosing the
+  // next video from being fed it.
+  var lastTap = 0;
+  document.addEventListener("click", function () { lastTap = Date.now(); }, true);
+
+  function isSwipe(url) {
+    if (!rules.blockSwipe || Date.now() - lastTap < 1000) return false;
+    try {
+      return rules.blockSwipe(new URL(location.href), new URL(url, location.href));
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function leaveSwipe() {
+    if (history.length > 1) history.back();
+    else location.replace(location.origin + "/");
+  }
+
   // Single-page-app navigation never reaches the native navigation delegate, so catch it here.
   ["pushState", "replaceState"].forEach(function (name) {
     var original = history[name];
     history[name] = function (state, title, url) {
       if (url != null) {
+        if (isSwipe(String(url))) {
+          leaveSwipe();
+          return;
+        }
         var next = redirectFor(String(url));
         if (next) {
           go(next);

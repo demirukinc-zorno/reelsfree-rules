@@ -27,6 +27,15 @@ window.ReelsFreeRules = {
     'a[href$="/reels/"][role="tab"]'
   ].join(",\n") + " { display: none !important; }",
 
+  // A reel someone sent you may be watched, but swiping moves the URL on to the next reel
+  // without a tap. common.js sends you back (to the chat) when that happens.
+  blockSwipe: function (from, to) {
+    var reel = /^\/(?:[\w.]+\/)?reels?\/([\w-]+)\/?$/;
+    var a = from.pathname.match(reel);
+    var b = to.pathname.match(reel);
+    return !!(a && b && a[1] !== b[1]);
+  },
+
   linkContains: [],
   cardSelector: null,
 
