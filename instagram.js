@@ -28,37 +28,5 @@ window.ReelsFreeRules = {
   ].join(",\n") + " { display: none !important; }",
 
   linkContains: [],
-  cardSelector: null,
-
-  // Sponsored posts. Matches on the visible label because Instagram's class names are
-  // obfuscated and change often.
-  sweep: function (document, helpers) {
-    var SPONSORED = /^(ad|sponsored|sponsorlu|reklam)$/i;
-    var LIKE = 'svg[aria-label="Like"], svg[aria-label="Beğen"]';
-
-    // The post is the first ancestor holding exactly one like button whose parent holds other
-    // posts too. Posts are not always <article> elements on the mobile site. Anything with
-    // more than one like button is part of the feed itself and must never be hidden.
-    function postFor(label) {
-      var article = label.closest("article");
-      if (article) return article;
-      for (var node = label.parentElement, depth = 0; node && node.parentElement && depth < 25; node = node.parentElement, depth++) {
-        var likes = node.querySelectorAll(LIKE).length;
-        if (likes > 1) return null;
-        if (likes === 1 && node.parentElement.querySelectorAll(LIKE).length > 1) return node;
-      }
-      return null;
-    }
-
-    // Only leaf elements: reading textContent of containers on a long feed is what made
-    // scrolling stall.
-    document.querySelectorAll("span, a").forEach(function (label) {
-      if (label.firstElementChild) return;
-      if (label.textContent.length > 12 || !SPONSORED.test(label.textContent.trim())) return;
-      var post = postFor(label);
-      if (post) helpers.hide(post);
-    });
-
-    helpers.hideAppPrompts();
-  }
+  cardSelector: null
 };
