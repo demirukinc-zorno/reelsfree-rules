@@ -1,4 +1,15 @@
 // YouTube (m.youtube.com) rules. When YouTube changes its site, this is the file to fix.
+
+// Background audio: YouTube pauses playback when the page reports itself hidden, which is
+// what happens when the app goes to the background. Report the page as always visible.
+(function () {
+  try {
+    Object.defineProperty(document, "hidden", { configurable: true, get: function () { return false; } });
+    Object.defineProperty(document, "visibilityState", { configurable: true, get: function () { return "visible"; } });
+    document.addEventListener("visibilitychange", function (event) { event.stopImmediatePropagation(); }, true);
+  } catch (e) {}
+})();
+
 window.ReelsFreeRules = {
   rewrite: function (url) {
     var path = url.pathname;
